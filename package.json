@@ -12,6 +12,7 @@
     "start": "concurrently npm:start:*"
   },
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.662.0",
     "@vendure/admin-ui-plugin": "3.0.3",
     "@vendure/asset-server-plugin": "3.0.3",
     "@vendure/core": "3.0.3",
