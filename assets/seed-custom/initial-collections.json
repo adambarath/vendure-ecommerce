@@ -1,0 +1,79 @@
+{
+  "defaultLanguage": "hu",
+  "defaultZone": "Europe",
+  "roles": [],
+  "taxRates": [],
+  "shippingMethods": [],
+  "paymentMethods": [],
+  "countries": [],
+  "collections": [
+    {
+      "name": "FOR HER",
+      "filters": [
+        {
+          "code": "facet-value-filter",
+          "args": {
+            "facetValueNames": ["FOR HER"],
+            "containsAny": false
+          }
+        }
+      ],
+      "assetPaths": ["forher.jpg"]
+    },
+    {
+      "name": "FOR HIM",
+      "filters": [
+        {
+          "code": "facet-value-filter",
+          "args": {
+            "facetValueNames": ["FOR HIM"],
+            "containsAny": false
+          }
+        }
+      ],
+      "assetPaths": ["forhim.jpg"]
+    },
+    {
+      "name": "Men's Shirts",
+      "filters": [
+        {
+          "code": "facet-value-filter",
+          "args": {
+            "facetValueNames": ["Men's Shirts"],
+            "containsAny": false
+          }
+        }
+      ],
+      "parentName": "FOR HIM",
+      "assetPaths": ["menshirt.jpg"]
+    },
+    {
+      "name": "Men's Performance Shorts",
+      "filters": [
+        {
+          "code": "facet-value-filter",
+          "args": {
+            "facetValueNames": ["Men's Performance Shorts"],
+            "containsAny": false
+          }
+        }
+      ],
+      "parentName": "FOR HIM",
+      "assetPaths": ["menperformanceshort.jpg"]
+    },
+    {
+      "name": "Inspired by animal",
+      "filters": [
+        {
+          "code": "facet-value-filter",
+          "args": {
+            "facetValueNames": ["Inspired by animal"],
+            "containsAny": false
+          }
+        }
+      ],
+      "parentName": "Men's Performance Shorts",
+      "assetPaths": ["menshirt.jpg"]
+    }
+  ]
+}

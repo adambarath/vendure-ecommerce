@@ -14,3 +14,7 @@ static/email/test-emails
 /.netlify
 /.wrangler
 /.yarn
+/assets/seed-default
+
+*vendure.sqlite
+vendure.sqlite

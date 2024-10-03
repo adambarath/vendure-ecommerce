@@ -1,0 +1,181 @@
+{
+  "defaultLanguage": "en",
+  "defaultZone": "Europe",
+  "roles": [
+    {
+      "code": "administrator",
+      "description": "Administrator",
+      "permissions": [
+        "CreateCatalog",
+        "ReadCatalog",
+        "UpdateCatalog",
+        "DeleteCatalog",
+        "CreateSettings",
+        "ReadSettings",
+        "UpdateSettings",
+        "DeleteSettings",
+        "CreateCustomer",
+        "ReadCustomer",
+        "UpdateCustomer",
+        "DeleteCustomer",
+        "CreateCustomerGroup",
+        "ReadCustomerGroup",
+        "UpdateCustomerGroup",
+        "DeleteCustomerGroup",
+        "CreateOrder",
+        "ReadOrder",
+        "UpdateOrder",
+        "DeleteOrder",
+        "CreateSystem",
+        "ReadSystem",
+        "UpdateSystem",
+        "DeleteSystem"
+      ]
+    },
+    {
+      "code": "order-manager",
+      "description": "Order manager",
+      "permissions": [
+        "CreateOrder",
+        "ReadOrder",
+        "UpdateOrder",
+        "DeleteOrder",
+        "ReadCustomer",
+        "ReadPaymentMethod",
+        "ReadShippingMethod",
+        "ReadPromotion",
+        "ReadCountry",
+        "ReadZone"
+      ]
+    },
+    {
+      "code": "inventory-manager",
+      "description": "Inventory manager",
+      "permissions": [
+        "CreateCatalog",
+        "ReadCatalog",
+        "UpdateCatalog",
+        "DeleteCatalog",
+        "CreateTag",
+        "ReadTag",
+        "UpdateTag",
+        "DeleteTag",
+        "ReadCustomer"
+      ]
+    }
+  ],
+  "taxRates": [
+    {
+      "name": "Standard Tax",
+      "percentage": 27
+    },
+    {
+      "name": "Reduced Tax",
+      "percentage": 10
+    },
+    {
+      "name": "Zero Tax",
+      "percentage": 0
+    }
+  ],
+  "shippingMethods": [
+    {
+      "name": "Standard Shipping",
+      "price": 500
+    },
+    {
+      "name": "Express Shipping",
+      "price": 1000
+    }
+  ],
+  "paymentMethods": [
+    {
+      "name": "Standard Payment",
+      "handler": {
+        "code": "dummy-payment-handler",
+        "arguments": [
+          {
+            "name": "automaticSettle",
+            "value": "false"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Stripe",
+      "handler": {
+        "code": "stripe",
+        "arguments": [
+          [
+            {
+              "name": "apiKey",
+              "value": ""
+            },
+            {
+              "name": "webhookSecret",
+              "value": ""
+            }
+          ]
+        ]
+      }
+    }
+  ],
+  "countries": [
+    { "name": "Åland Islands", "code": "AX", "zone": "Europe" },
+    { "name": "Albania", "code": "AL", "zone": "Europe" },
+    { "name": "Andorra", "code": "AD", "zone": "Europe" },
+    { "name": "Austria", "code": "AT", "zone": "Europe" },
+    { "name": "Belarus", "code": "BY", "zone": "Europe" },
+    { "name": "Belgium", "code": "BE", "zone": "Europe" },
+    { "name": "Bosnia and Herzegovina", "code": "BA", "zone": "Europe" },
+    { "name": "Bulgaria", "code": "BG", "zone": "Europe" },
+    { "name": "Croatia", "code": "HR", "zone": "Europe" },
+    { "name": "Czechia", "code": "CZ", "zone": "Europe" },
+    { "name": "Denmark", "code": "DK", "zone": "Europe" },
+    { "name": "Estonia", "code": "EE", "zone": "Europe" },
+    { "name": "Faroe Islands", "code": "FO", "zone": "Europe" },
+    { "name": "Finland", "code": "FI", "zone": "Europe" },
+    { "name": "France", "code": "FR", "zone": "Europe" },
+    { "name": "Germany", "code": "DE", "zone": "Europe" },
+    { "name": "Gibraltar", "code": "GI", "zone": "Europe" },
+    { "name": "Greece", "code": "GR", "zone": "Europe" },
+    { "name": "Guernsey", "code": "GG", "zone": "Europe" },
+    { "name": "Holy See", "code": "VA", "zone": "Europe" },
+    { "name": "Hungary", "code": "HU", "zone": "Europe" },
+    { "name": "Iceland", "code": "IS", "zone": "Europe" },
+    { "name": "Ireland", "code": "IE", "zone": "Europe" },
+    { "name": "Isle of Man", "code": "IM", "zone": "Europe" },
+    { "name": "Italy", "code": "IT", "zone": "Europe" },
+    { "name": "Jersey", "code": "JE", "zone": "Europe" },
+    { "name": "Latvia", "code": "LV", "zone": "Europe" },
+    { "name": "Liechtenstein", "code": "LI", "zone": "Europe" },
+    { "name": "Lithuania", "code": "LT", "zone": "Europe" },
+    { "name": "Luxembourg", "code": "LU", "zone": "Europe" },
+    {
+      "name": "Macedonia (the former Yugoslav Republic of)",
+      "code": "MK",
+      "zone": "Europe"
+    },
+    { "name": "Malta", "code": "MT", "zone": "Europe" },
+    { "name": "Moldova (Republic of)", "code": "MD", "zone": "Europe" },
+    { "name": "Monaco", "code": "MC", "zone": "Europe" },
+    { "name": "Montenegro", "code": "ME", "zone": "Europe" },
+    { "name": "Netherlands", "code": "NL", "zone": "Europe" },
+    { "name": "Norway", "code": "NO", "zone": "Europe" },
+    { "name": "Poland", "code": "PL", "zone": "Europe" },
+    { "name": "Portugal", "code": "PT", "zone": "Europe" },
+    { "name": "Romania", "code": "RO", "zone": "Europe" },
+    { "name": "Russian Federation", "code": "RU", "zone": "Europe" },
+    { "name": "San Marino", "code": "SM", "zone": "Europe" },
+    { "name": "Serbia", "code": "RS", "zone": "Europe" },
+    { "name": "Slovakia", "code": "SK", "zone": "Europe" },
+    { "name": "Slovenia", "code": "SI", "zone": "Europe" },
+    { "name": "Spain", "code": "ES", "zone": "Europe" },
+    { "name": "Svalbard and Jan Mayen", "code": "SJ", "zone": "Europe" },
+    { "name": "Sweden", "code": "SE", "zone": "Europe" },
+    { "name": "Switzerland", "code": "CH", "zone": "Europe" },
+    { "name": "Ukraine", "code": "UA", "zone": "Europe" },
+    { "name": "United Kingdom", "code": "GB", "zone": "Europe" }
+  ],
+  "collections": []
+}

@@ -1,26 +1,21 @@
-import { AwsSesEmailSender } from "./plugins/email-plugin/awsses-email-sender";
+import { dbConnectionOptions } from "./vendure-config-database";
+import { plugins } from "./vendure-config-plugins";
 import {
   dummyPaymentHandler,
-  DefaultJobQueuePlugin,
-  DefaultSearchPlugin,
+  LanguageCode,
   VendureConfig,
 } from "@vendure/core";
-import {
-  defaultEmailHandlers,
-  EmailPlugin,
-  FileBasedTemplateLoader,
-} from "@vendure/email-plugin";
-import { AssetServerPlugin } from "@vendure/asset-server-plugin";
-import { AdminUiPlugin } from "@vendure/admin-ui-plugin";
-import { StripePlugin } from "@vendure/payments-plugin/package/stripe";
 import "dotenv/config";
 import path from "path";
 
 const IS_DEV = process.env.APP_ENV === "dev";
-const serverPort = +process.env.PORT || 3000;
+const serverPort = +(process.env.PORT || 3000);
 
 export const config: VendureConfig = {
+  plugins,
+  dbConnectionOptions,
   apiOptions: {
+    hostname: process.env.HOSTNAME,
     port: serverPort,
     adminApiPath: "admin-api",
     shopApiPath: "shop-api",
@@ -50,62 +45,87 @@ export const config: VendureConfig = {
       secret: process.env.COOKIE_SECRET,
     },
   },
-  dbConnectionOptions: {
-    type: "better-sqlite3",
-    // See the README.md "Migrations" section for an explanation of
-    // the `synchronize` and `migrations` options.
-    synchronize: false,
-    migrations: [path.join(__dirname, "./migrations/*.+(js|ts)")],
-    logging: false,
-    database: path.join(__dirname, "../vendure.sqlite"),
-  },
   paymentOptions: {
     paymentMethodHandlers: [dummyPaymentHandler],
   },
   // When adding or altering custom field definitions, the database will
   // need to be updated. See the "Migrations" section in README.md.
-  customFields: {},
-  plugins: [
-    AssetServerPlugin.init({
-      route: "assets",
-      assetUploadDir: path.join(__dirname, "../static/assets"),
-      // For local dev, the correct value for assetUrlPrefix should
-      // be guessed correctly, but for production it will usually need
-      // to be set manually to match your production url.
-      assetUrlPrefix: IS_DEV ? undefined : "https://www.my-shop.com/assets/",
-    }),
-    DefaultJobQueuePlugin.init({ useDatabaseForBuffer: true }),
-    DefaultSearchPlugin.init({ bufferUpdates: false, indexStockStatus: true }),
-    EmailPlugin.init({
-      devMode: true,
-      outputPath: path.join(__dirname, "../static/email/test-emails"),
-      route: "mailbox",
-      handlers: defaultEmailHandlers,
-      templateLoader: new FileBasedTemplateLoader(
-        path.join(__dirname, "../static/email/templates")
-      ),
-      globalTemplateVars: {
-        // The following variables will change depending on your storefront implementation.
-        // Here we are assuming a storefront running at http://localhost:8080.
-        fromAddress: '"example" <noreply@example.com>',
-        verifyEmailAddressUrl: "http://localhost:8080/verify",
-        passwordResetUrl: "http://localhost:8080/password-reset",
-        changeEmailAddressUrl:
-          "http://localhost:8080/verify-email-address-change",
+  customFields: {
+    // // deefined in: @vendure\payments-plugin\package\stripe\stripe.plugin.js
+    // Customer: [ { name: "stripeCustomerId", type: "string"nullable: true, public: false, readonly: true, } ],
+    Product: [
+      // Rich text editor
+      {
+        label: [{ languageCode: LanguageCode.en, value: "Additional Info" }],
+        name: "additionalInfo",
+        type: "text",
+        ui: { component: "rich-text-form-input" },
       },
-      emailSender: new AwsSesEmailSender(),
-    }),
-    AdminUiPlugin.init({
-      route: "admin",
-      port: serverPort + 2,
-      adminUiConfig: {
-        apiPort: serverPort,
+      // JSON editor
+      {
+        label: [{ languageCode: LanguageCode.en, value: "JSON specs" }],
+        name: "specs",
+        type: "text",
+        ui: { component: "json-editor-form-input" },
       },
-    }),
-    // https://docs.vendure.io/reference/core-plugins/payments-plugin/stripe-plugin/#stripeplugin
-    StripePlugin.init({
-      // This prevents different customers from using the same PaymentIntent
-      storeCustomersInStripe: true,
-    }),
-  ],
+      // Numeric with suffix
+      {
+        label: [{ languageCode: LanguageCode.en, value: "Weight (g)" }],
+        name: "weight",
+        type: "int",
+        ui: { component: "number-form-input", suffix: "g" },
+      },
+      // Select with options
+      {
+        label: [
+          { languageCode: LanguageCode.en, value: "Size Chart Reference" },
+        ],
+        name: "sizeChartType",
+        type: "string",
+        ui: {
+          component: "select-form-input",
+          options: [
+            {
+              value: "unisex-tshirt-01",
+              label: [{ languageCode: LanguageCode.en, value: "Unisex" }],
+            },
+            {
+              value: "women-tshirt-01",
+              label: [
+                { languageCode: LanguageCode.en, value: "Women t-shirt 01" },
+              ],
+            },
+            {
+              value: "men-tshirt-01",
+              label: [
+                { languageCode: LanguageCode.en, value: "Men t-shirt 01" },
+              ],
+            },
+            {
+              value: "women-tank-01",
+              label: [
+                { languageCode: LanguageCode.en, value: "Women tank 01" },
+              ],
+            },
+            {
+              value: "men-tank-01",
+              label: [{ languageCode: LanguageCode.en, value: "Men tank 01" }],
+            },
+            {
+              value: "women-hoodie-01",
+              label: [
+                { languageCode: LanguageCode.en, value: "Women hoodie 01" },
+              ],
+            },
+            {
+              value: "men-hoodie-01",
+              label: [
+                { languageCode: LanguageCode.en, value: "Men hoodie 01" },
+              ],
+            },
+          ],
+        },
+      },
+    ],
+  },
 };
