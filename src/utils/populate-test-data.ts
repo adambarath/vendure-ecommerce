@@ -2,49 +2,94 @@
 // https://docs.vendure.io/guides/developer-guide/importing-data/
 
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { bootstrap, defaultConfig, Logger, mergeConfig, RuntimeVendureConfig, DefaultJobQueuePlugin  } from '@vendure/core';
-import { populate } from '@vendure/core/cli';
-import { config } from '../vendure-config';
-import path from 'path';
+import {
+  bootstrap,
+  defaultConfig,
+  Logger,
+  mergeConfig,
+  RuntimeVendureConfig,
+  DefaultJobQueuePlugin,
+  LanguageCode,
+  CollectionDefinition,
+  InitialData,
+} from "@vendure/core";
+import {
+  importProductsFromCsv,
+  populate,
+  populateCollections,
+} from "@vendure/core/cli";
+import { config } from "../vendure-config";
+import path from "path";
+import fs from "fs";
 
-const productsCsvFile = path.join(__dirname, 'assets/seed-custom/products.csv')
-const initialDataJsonFile = path.join(__dirname, 'assets/seed-custom/initial-data.json')
+export const productsCsvFiles = [
+  path.join(__dirname, "../../assets/seed-custom/products_1.csv"),
+  path.join(__dirname, "../../assets/seed-custom/products_2.csv"),
+];
+const initialDataJsonFile = path.join(
+  __dirname,
+  "../../assets/seed-custom/initial-data.json"
+);
+const initialCollectionsJsonFile = path.join(
+  __dirname,
+  "../../assets/seed-custom/initial-collections.json"
+);
 
 const populateConfig = {
-    ...config,
-    plugins: (config.plugins || []).filter(
-        // Remove your JobQueuePlugin during populating to avoid
-        // generating lots of unnecessary jobs as the Collections get created.
-        plugin => plugin !== DefaultJobQueuePlugin,
-    ),
+  ...config,
+  plugins: (config.plugins || []).filter(
+    // Remove your JobQueuePlugin during populating to avoid
+    // generating lots of unnecessary jobs as the Collections get created.
+    (plugin) => plugin !== DefaultJobQueuePlugin
+  ),
+  dbConnectionOptions: {
+    ...config.dbConnectionOptions,
+    synchronize: true,
+  },
+};
+
+if (require.main === module) {
+  importData().then(
+    () => process.exit(0),
+    (err) => {
+      console.log(err);
+      process.exit(1);
+    }
+  );
 }
 
-populate(
-    () => bootstrap(populateConfig),
-    // initialData, import { initialData } from './my-initial-data';
-    initialDataJsonFile,
-    productsCsvFile,
-    //'my-channel-token' // optional - used to assign imported 
-)   //                   // entities to the specified Channel
+async function importData() {
+  const app = await bootstrap(populateConfig);
 
-    .then(app => {
-        return app.close();
-    })
-    .then(
-        () => process.exit(0),
-        err => {
-            console.log(err);
-            process.exit(1);
-        },
-    );
+  let collections: InitialData = JSON.parse(
+    fs.readFileSync(initialCollectionsJsonFile, "utf-8")
+  );
+  // console.log(collections);
+  await populateCollections(
+    app,
+    {
+      defaultLanguage: LanguageCode.en,
+      defaultZone: "",
+      countries: [],
+      taxRates: [],
+      shippingMethods: [],
+      paymentMethods: [],
+      collections: collections.collections,
+    },
+    undefined
+  );
 
+    for (let i = 0; productsCsvFiles.length; i++) {
+      await importProductsFromCsv(
+        app,
+        productsCsvFiles[i],
+        LanguageCode.en
+        //'my-channel-token' // optional - used to assign imported
+      ); //                   // entities to the specified Channel
+    }
 
-
-
-
-
-
-
+  app.close();
+}
 
 // import { clearAllTables, populateCustomers, SimpleGraphQLClient } from '@vendure/testing';
 // import gql from 'graphql-tag';
