@@ -1,20 +1,47 @@
-version: "3"
+
+# docker-compose -f ./docker-compose.yml up -d
+
+version: "3.9"
+
 services:
   server:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 9010:3000
+      # reverse proxy miatt, az admin forrsakodjaba be van egetve a port es nem megy at reverse proxyn
+      - 8003:443
     command: ["npm", "run", "start:server"]
+    # entrypoint: top
     volumes:
-      - /usr/src/app
+      - vendure-server:/usr/src/app
     environment:
       DB_HOST: database
       DB_PORT: 5432
       DB_NAME: vendure
       DB_USERNAME: postgres
       DB_PASSWORD: password
+
+      APP_ENV: prod
+      # reverse proxy miatt, az admin forrsakodjaba be van egetve a port es nem megy at reverse proxyn
+      PORT: 443
+      COOKIE_SECRET: TODO_CHANGE_ME
+      SUPERADMIN_USERNAME: superadmin
+      SUPERADMIN_PASSWORD: superadmin
+
+      RUN_JOB_QUEUE_FROM_SERVER: false
+      STOREFRONT_DOMAIN: http://localhost:8002
+
+      ASSET_UPLOAD_DIR: 
+      MINIO_ACCESS_KEY: 
+      MINIO_SECRET_KEY: 
+      MINIO_ENDPOINT: 
+
+      SES_REGION: "us-east-1"
+      SES_ACCESS_KEY_ID: ""
+      SES_SECRET_ACCESS_KEY: ""
+      SES_FROM: '"[webshop]" <noreply@webshop.store>'
+      SES_ORDER_PLACED_CC: ""
   
   worker:
     build:
@@ -22,7 +49,7 @@ services:
       dockerfile: Dockerfile
     command: ["npm", "run", "start:worker"]
     volumes:
-      - /usr/src/app
+      - vendure-worker:/usr/src/app
     environment:
       DB_HOST: database
       DB_PORT: 5432
@@ -33,13 +60,15 @@ services:
   database:
     image: postgres
     volumes:
-      - vendure-v1-db:/var/lib/postgresql/data
-    ports:
-      - 5432:5432
+      - vendure-database-v1-db:/var/lib/postgresql/data
+    # ports:
+    #   - 5432:5432
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: vendure
 
 volumes:
+  vendure-server: {}
+  vendure-worker: {}
   vendure-database-v1-db: {}
   vendure-database-v2-db: {}

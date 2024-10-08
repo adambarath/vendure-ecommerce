@@ -10,6 +10,7 @@ declare global {
       COOKIE_SECRET: string;
       SUPERADMIN_USERNAME: string;
       SUPERADMIN_PASSWORD: string;
+      DB_TYPE?: string;
       DB_URL?: string;
       DB_HOST: string;
       DB_PORT: number;
@@ -20,6 +21,7 @@ declare global {
       DB_CA_CERT?: string;
 
       RUN_JOB_QUEUE_FROM_SERVER: string;
+      STOREFRONT_DOMAIN: string;
       
       ASSET_UPLOAD_DIR?: string;
       MINIO_ACCESS_KEY: string;

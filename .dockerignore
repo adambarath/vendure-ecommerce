@@ -1,0 +1,17 @@
+
+# Don't copy these dirs to build context
+.cache/
+.git/
+.github/
+.storybook/
+build/
+public/
+node_modules/
+
+static/assets/cache/
+static/assets/preview/
+static/assets/source/
+
+.env
+_vendure.sqlite
+vendure.sqlite
