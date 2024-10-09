@@ -10,7 +10,7 @@
     "start:server": "node ./dist/index.js",
     "start:worker": "node ./dist/index-worker.js",
     "start": "concurrently npm:start:*",
-    "populate": "ts-node ./src/utils/populate-test-data.ts",
+    "populate": "ts-node ./src/data-import/populate-test-data.ts",
     "codegen": "graphql-codegen --config ./_codegen.ts"
   },
   "dependencies": {

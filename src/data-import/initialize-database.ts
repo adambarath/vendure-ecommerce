@@ -15,17 +15,18 @@ import path from "path";
  *
  * https://github.com/vendure-ecommerce/one-click-deploy
  */
-export async function populateOnFirstRun(config: VendureConfig) {
+export async function initializeDatabaseOnFirstRun(config: VendureConfig) {
   const dbTablesAlreadyExist = await tablesExist(config);
   if (!dbTablesAlreadyExist) {
     console.log(`No Vendure tables found in DB. Populating database...`);
-    return populate(
+
+    const app = await populate(
       () =>
         bootstrap({
           ...config,
           importExportOptions: {
             importAssetsDir: path.join(
-              require.resolve("../assets/seed-custom/initial-data.json"),
+              require.resolve("../../assets/seed-custom/initial-data.json"),
               "../images"
             ),
           },
@@ -34,9 +35,11 @@ export async function populateOnFirstRun(config: VendureConfig) {
             synchronize: true,
           },
         }),
-      require("../assets/seed-custom/initial-data.json"),
-      undefined //require.resolve("../assets/seed-custom/products.csv")
-    ).then((app) => app.close());
+      require("../../assets/seed-custom/initial-data.json"),
+      undefined //  collections and product are imported by a standalon command
+    );
+
+    app.close();
   } else {
     return;
   }

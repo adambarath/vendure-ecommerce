@@ -1,7 +1,10 @@
 // https://github.com/vendure-ecommerce/real-world-vendure/blob/master/populate.ts
 // https://docs.vendure.io/guides/developer-guide/importing-data/
+// https://github.com/vendure-ecommerce/vendure/blob/master/packages/core/src/cli/populate.ts
+// https://github.com/NadimD/vendure-simple-importer/blob/main/services/simple-importer.service.ts
 
 /* eslint-disable @typescript-eslint/no-var-requires */
+import { INestApplication } from "@nestjs/common";
 import {
   bootstrap,
   defaultConfig,
@@ -12,6 +15,17 @@ import {
   LanguageCode,
   CollectionDefinition,
   InitialData,
+  Channel,
+  CollectionService,
+  FacetValueService,
+  PaymentMethodService,
+  RequestContextService,
+  RoleService,
+  ShippingMethodService,
+  TransactionalConnection,
+  User,
+  ChannelService,
+  runMigrations,
 } from "@vendure/core";
 import {
   importProductsFromCsv,
@@ -21,6 +35,8 @@ import {
 import { config } from "../vendure-config";
 import path from "path";
 import fs from "fs";
+import { initializeDatabaseOnFirstRun } from "./initialize-database";
+import { StripePlugin } from "@vendure/payments-plugin/package/stripe";
 
 export const productsCsvFiles = [
   path.join(__dirname, "../../assets/seed-custom/products_1.csv"),
@@ -35,13 +51,11 @@ const initialCollectionsJsonFile = path.join(
   "../../assets/seed-custom/initial-collections.json"
 );
 
-const populateConfig = {
+const baseConfig = {
   ...config,
-  plugins: (config.plugins || []).filter(
-    // Remove your JobQueuePlugin during populating to avoid
-    // generating lots of unnecessary jobs as the Collections get created.
-    (plugin) => plugin !== DefaultJobQueuePlugin
-  ),
+  importExportOptions: {
+    importAssetsDir: path.join(initialDataJsonFile, "../images"),
+  },
   dbConnectionOptions: {
     ...config.dbConnectionOptions,
     synchronize: true,
@@ -59,36 +73,122 @@ if (require.main === module) {
 }
 
 async function importData() {
+  await initializeDatabaseOnFirstRun(baseConfig);
+
+  // if (baseConfig.plugins) {
+  //   for (let i = 0; i < (baseConfig.plugins?.length ?? 0); i++) {
+  //     let pluginDefinition = baseConfig.plugins[i];
+  //     if (pluginDefinition) {
+  //       console.log(pluginDefinition);
+  //     }
+  //   }
+  // }
+  const migrationConfig = {
+    ...baseConfig,
+    dbConnectionOptions: {
+      ...baseConfig.dbConnectionOptions,
+      synchronize: false,
+    },
+  };
+  // Error: CustomFields config error: - Customer entity has duplicated custom field name: "stripeCustomerId"
+  await runMigrations(migrationConfig);
+
+  const populateConfig = {
+    ...baseConfig,
+    plugins: (baseConfig.plugins || []).filter(
+      // Remove your JobQueuePlugin during populating to avoid
+      // generating lots of unnecessary jobs as the Collections get created.
+      (plugin) => plugin !== DefaultJobQueuePlugin
+    ),
+  };
   const app = await bootstrap(populateConfig);
 
-  let collections: InitialData = JSON.parse(
+  //await importProducts(app);
+  await importCollections(app);
+
+  app.close();
+}
+
+async function importProducts(app: INestApplication) {
+  let data: InitialData = JSON.parse(
     fs.readFileSync(initialCollectionsJsonFile, "utf-8")
   );
-  // console.log(collections);
+
+  for (let i = 0; productsCsvFiles.length; i++) {
+    await importProductsFromCsv(
+      app,
+      productsCsvFiles[i],
+      data.defaultLanguage
+      //'my-channel-token' // optional - used to assign imported
+    ); //                   // entities to the specified Channel
+  }
+}
+
+/**
+ * @description
+ * Should be run *after* the products have been populated, otherwise the expected FacetValues will not
+ * yet exist.
+ */
+async function importCollections(app: INestApplication) {
+  let data: InitialData = JSON.parse(
+    fs.readFileSync(initialCollectionsJsonFile, "utf-8")
+  );
+
+  let channel = undefined;
+  const ctx = await createRequestContext(app, data, channel);
+  const collectionEntities = await app.get(CollectionService).findAll(ctx);
+  const collectionsToInsert =
+    collectionEntities.totalItems == 0
+      ? data.collections
+      : data.collections.filter((x) => {
+          collectionEntities.items.find(
+            (existinCollection) => existinCollection.name == x.name
+          );
+        });
+
+  // console.log(collectionEntities);
+  // console.log(data.collections);
+  // console.log(collectionsToInsert);
   await populateCollections(
     app,
     {
-      defaultLanguage: LanguageCode.en,
+      defaultLanguage: data.defaultLanguage, // en!  nem fog mukodni a collection facet szures kulonbozo nyelvekkel
       defaultZone: "",
       countries: [],
       taxRates: [],
       shippingMethods: [],
       paymentMethods: [],
-      collections: collections.collections,
+      collections: collectionsToInsert,
     },
     undefined
   );
+}
 
-    for (let i = 0; productsCsvFiles.length; i++) {
-      await importProductsFromCsv(
-        app,
-        productsCsvFiles[i],
-        LanguageCode.en
-        //'my-channel-token' // optional - used to assign imported
-      ); //                   // entities to the specified Channel
-    }
+async function createRequestContext(
+  app: INestApplication,
+  data: InitialData,
+  channel?: Channel
+) {
+  const { superadminCredentials } = baseConfig.authOptions;
+  const channelService = await app.get(ChannelService);
+  const connection = await app.get(TransactionalConnection);
+  const requestContextService = await app.get(RequestContextService);
+  const superAdminUser = await connection.rawConnection
+    .getRepository(User)
+    .findOne({
+      where: {
+        identifier: superadminCredentials!.identifier,
+      },
+    });
 
-  app.close();
+  const ctx = await requestContextService.create({
+    user: superAdminUser ?? undefined,
+    apiType: "admin",
+    languageCode: data.defaultLanguage,
+    channelOrToken: channel ?? (await channelService.getDefaultChannel()),
+  });
+
+  return ctx;
 }
 
 // import { clearAllTables, populateCustomers, SimpleGraphQLClient } from '@vendure/testing';
